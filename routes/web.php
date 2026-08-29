@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+//仮ルート（お問い合わせ機能実装時に置き換え）
 Route::get('/', function () {
-    return view('welcome');
+    return 'お問い合わせ入力ページ（準備中）';
+});
+
+// 仮ルート（管理画面実装時に置き替え）
+Route::middleware('auth')->group(function () {
+    Route::get('/admin', fn() => '管理画面（準備中）')->name('admin.index');
 });
