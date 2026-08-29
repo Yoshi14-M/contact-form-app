@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,10 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-//仮ルート（お問い合わせ機能実装時に置き換え）
-Route::get('/', function () {
-    return 'お問い合わせ入力ページ（準備中）';
-});
+//お問い合わせフォーム（一般公開ルート）
+Route::get('/', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/contacts/confirm', [ContactController::class, 'confirm'])->name('contact.confirm');
+Route::post('/contacts', [ContactController::class, 'store'])->name('contact.store');
+Route::get('/thanks', [ContactController::class, 'thanks'])->name('contact.thanks');
 
 // 仮ルート（管理画面実装時に置き替え）
 Route::middleware('auth')->group(function () {
