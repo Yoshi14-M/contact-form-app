@@ -21,11 +21,14 @@ Route::post('/contacts/confirm', [ContactController::class, 'confirm'])->name('c
 Route::post('/contacts', [ContactController::class, 'store'])->name('contact.store');
 Route::get('/thanks', [ContactController::class, 'thanks'])->name('contact.thanks');
 
-// 管理画面（認証ルート）
+/** 
+ * 管理画面（認証ルート）
+ * prefix('admin')->name('admin.')でグループと結合して'admin.'を省略。
+ */
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    //管理画面のCRUDルート(仮ルート)
+    Route::get('/', fn() => '管理画面（準備中）')->name('index');
     //タグのCRUDルート
     Route::resource('tags', TagController::class)
         ->only(['store', 'edit', 'update', 'destroy',]);
-    //管理画面のCRUDルート(仮ルート)
-    Route::get('/', fn() => '管理画面（準備中）')->name('index');
 });
