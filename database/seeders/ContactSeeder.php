@@ -5,19 +5,18 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Contact;
 use App\Models\Tag;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ContactSeeder extends Seeder
 {
     public function run(): void
     {
-        //カテゴリーを取得
+        // カテゴリーを取得
         $categories = Category::all();
-        //タグを取得
+        // タグを取得
         $tags = Tag::all();
 
-        //20件と問い合わせを投入
+        // 20件と問い合わせを投入
         for ($i = 0; $i < 20; $i++) {
             $contact = Contact::factory()->create([
                 'category_id' => $categories->random()->id,
