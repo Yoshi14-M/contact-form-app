@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
@@ -27,7 +28,9 @@ Route::get('/thanks', [ContactController::class, 'thanks'])->name('contact.thank
  */
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     //管理画面のCRUDルート(仮ルート)
-    Route::get('/', fn() => '管理画面（準備中）')->name('index');
+    Route::get('/', [AdminController::class, 'index'])->name('index');
+    Route::get('/contacts/{contact}', [AdminController::class, 'show'])->name('contacts.show');
+    Route::delete('/contacts/{contact}', [AdminController::class, 'destroy'])->name('contacts.destroy');
     //タグのCRUDルート
     Route::resource('tags', TagController::class)
         ->only(['store', 'edit', 'update', 'destroy',]);
