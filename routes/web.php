@@ -27,7 +27,7 @@ Route::get('/thanks', [ContactController::class, 'thanks'])->name('contact.thank
  * prefix('admin')->name('admin.')でグループと結合して'admin.'を省略。
  */
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    //管理画面のCRUDルート(仮ルート)
+    //管理画面のCRUDルート
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::get('/contacts/{contact}', [AdminController::class, 'show'])->name('contacts.show');
     Route::delete('/contacts/{contact}', [AdminController::class, 'destroy'])->name('contacts.destroy');

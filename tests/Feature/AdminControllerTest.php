@@ -28,12 +28,20 @@ class AdminControllerTest extends TestCase
                 && $contacts->total() === 10; // 総データ数が10件として認識されていること
         });
     }
-    public function 未認証ユーザーはログイン画面にリダイレクトされる(): void
+    /** @test */
+    public function 詳細画面が表示できる(): void
     {
+        //Arrange
+        $user = User::factory()->create();
+        $contact = Contact::factory()->create();
         //Act
-        $response = $this->get(route('admin.index'));
+        $response = $this->actingAs($user)->get(route('admin.contacts.show', $contact));
         //Assert
-        $response->assertRedirect(route('login'));
+        $response->assertStatus(200);
+        $response->assertViewIs('admin.show');
+        $response->assertViewHas('contact', function ($viewContact) use ($contact) {
+            return $viewContact->id === $contact->id;
+        });
     }
     /** @test */
     public function 問い合わせが削除できる(): void
@@ -46,5 +54,13 @@ class AdminControllerTest extends TestCase
         //Assert
         $response->assertRedirect(route('admin.index'));
         $this->assertDatabaseMissing('contacts', ['id' => $contact->id]);
+    }
+    /** @test */
+    public function 未認証ユーザーはログイン画面にリダイレクトされる(): void
+    {
+        //Act
+        $response = $this->get(route('admin.index'));
+        //Assert
+        $response->assertRedirect(route('login'));
     }
 }
