@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -14,59 +13,63 @@ class AuthenticationTest extends TestCase
     /** @test */
     public function 未認証ユーザーはログイン画面にリダイレクトされる(): void
     {
-        //Act
+        // Act
         $response = $this->get('/admin');
-        //Assert
+        // Assert
         $response->assertRedirect('/login');
     }
+
     /** @test */
     public function ログイン画面を表示できる(): void
     {
-        //Act
+        // Act
         $response = $this->get('/login');
-        //Assert
+        // Assert
         $response->assertStatus(200);
     }
+
     /** @test */
     public function 正しい認証情報でログイン（管理画面が表示）できる(): void
     {
-        //Arrange
+        // Arrange
         $user = User::factory()->create([
             'password' => bcrypt('password123'),
         ]);
-        //Act
+        // Act
         $response = $this->post('/login', [
             'email' => $user->email,
             'password' => 'password123',
         ]);
-        //Assert
+        // Assert
         $response->assertRedirect('/admin');
         $this->assertAuthenticatedAs($user);
     }
+
     /** @test */
     public function 間違ったパスワードではログインできない(): void
     {
-        //Arrange
+        // Arrange
         $user = User::factory()->create([
             'password' => bcrypt('password123'),
         ]);
-        //Act
+        // Act
         $response = $this->post('/login', [
             'email' => $user->email,
             'password' => 'wrong-password',
         ]);
-        //Assert
+        // Assert
         $response->assertSessionHasErrors('email');
         $this->assertGuest();
     }
+
     /** @test */
     public function ログアウトできる(): void
     {
-        //Arrange
+        // Arrange
         $user = User::factory()->create();
-        //Act
+        // Act
         $response = $this->actingAs($user)->post('/logout');
-        //Assert
+        // Assert
         $response->assertRedirect('/');
         $this->assertGuest();
     }

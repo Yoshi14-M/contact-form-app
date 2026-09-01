@@ -16,22 +16,22 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-//お問い合わせフォーム（一般公開ルート）
+// お問い合わせフォーム（一般公開ルート）
 Route::get('/', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contacts/confirm', [ContactController::class, 'confirm'])->name('contact.confirm');
 Route::post('/contacts', [ContactController::class, 'store'])->name('contact.store');
 Route::get('/thanks', [ContactController::class, 'thanks'])->name('contact.thanks');
 
-/** 
+/**
  * 管理画面（認証ルート）
  * prefix('admin')->name('admin.')でグループと結合して'admin.'を省略。
  */
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    //管理画面のCRUDルート(仮ルート)
+    // 管理画面のCRUDルート
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::get('/contacts/{contact}', [AdminController::class, 'show'])->name('contacts.show');
     Route::delete('/contacts/{contact}', [AdminController::class, 'destroy'])->name('contacts.destroy');
-    //タグのCRUDルート
+    // タグのCRUDルート
     Route::resource('tags', TagController::class)
-        ->only(['store', 'edit', 'update', 'destroy',]);
+        ->only(['store', 'edit', 'update', 'destroy']);
 });

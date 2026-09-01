@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
 class AdminControllerTest extends TestCase
@@ -15,36 +15,55 @@ class AdminControllerTest extends TestCase
     /** @test */
     public function ページネーションされて表示される(): void
     {
-        //Arrange
+        // Arrange
         $user = User::factory()->create();
         Contact::factory()->count(10)->create();
-        //Act
+        // Act
         $response = $this->actingAs($user)->get(route('admin.index'));
-        //Assert
+        // Assert
         $response->assertStatus(200);
         $response->assertViewHas('contacts', function ($contacts) {
-            return $contacts instanceof \Illuminate\Pagination\LengthAwarePaginator
+            return $contacts instanceof LengthAwarePaginator
                 && $contacts->count() === 7   // 1ページ目の表示件数が7件であること
                 && $contacts->total() === 10; // 総データ数が10件として認識されていること
         });
     }
-    public function 未認証ユーザーはログイン画面にリダイレクトされる(): void
+
+    /** @test */
+    public function 詳細画面が表示できる(): void
     {
-        //Act
-        $response = $this->get(route('admin.index'));
-        //Assert
-        $response->assertRedirect(route('login'));
+        // Arrange
+        $user = User::factory()->create();
+        $contact = Contact::factory()->create();
+        // Act
+        $response = $this->actingAs($user)->get(route('admin.contacts.show', $contact));
+        // Assert
+        $response->assertStatus(200);
+        $response->assertViewIs('admin.show');
+        $response->assertViewHas('contact', function ($viewContact) use ($contact) {
+            return $viewContact->id === $contact->id;
+        });
     }
+
     /** @test */
     public function 問い合わせが削除できる(): void
     {
-        //Arrange
+        // Arrange
         $user = User::factory()->create();
         $contact = Contact::factory()->create();
-        //Act
+        // Act
         $response = $this->actingAs($user)->delete(route('admin.contacts.destroy', $contact));
-        //Assert
+        // Assert
         $response->assertRedirect(route('admin.index'));
         $this->assertDatabaseMissing('contacts', ['id' => $contact->id]);
+    }
+
+    /** @test */
+    public function 未認証ユーザーはログイン画面にリダイレクトされる(): void
+    {
+        // Act
+        $response = $this->get(route('admin.index'));
+        // Assert
+        $response->assertRedirect(route('login'));
     }
 }
