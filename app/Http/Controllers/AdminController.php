@@ -16,34 +16,14 @@ class AdminController extends Controller
      */
     public function index(IndexContactRequest $request)
     {
-        // Eagerローディング
-        $query = Contact::with(['category', 'tags']);
+        // バリデーション
+        $validated = $request->validated();
 
-        // キーワード検索
-        if ($keyword = $request->input('keyword')) {
-            $query->where(function ($q) use ($keyword) {
-                $q->where('first_name', 'like', "%{$keyword}%")
-                    ->orWhere('last_name', 'like', "%{$keyword}%")
-                    ->orWhere('email', 'like', "%{$keyword}%");
-            });
-        }
-        // 性別検索
-        if ($gender = $request->input('gender')) {
-            if ($gender != '0') {
-                $query->where('gender', $gender);
-            }
-        }
-        // カテゴリー検索
-        if ($categoryId = $request->input('category_id')) {
-            $query->where('category_id', $categoryId);
-        }
-        // 問い合わせ日時検索
-        if ($date = $request->input('date')) {
-            $query->whereDate('created_at', $date);
-        }
-
-        // ページネーション
-        $contacts = $query->paginate(7)->appends($request->query());
+        // 検索ロジックを呼び出してページネーション
+        $contacts = Contact::with(['category', 'tags'])
+            ->search($validated)
+            ->paginate(7)
+            ->appends($validated);
         $categories = Category::all();
         $tags = Tag::all();
 
@@ -96,7 +76,7 @@ class AdminController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * 検索条件のクリア
+     * お問い合わせの削除
      */
     public function destroy(Contact $contact)
     {

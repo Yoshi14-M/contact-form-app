@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -65,5 +66,38 @@ class AdminControllerTest extends TestCase
         $response = $this->get(route('admin.index'));
         // Assert
         $response->assertRedirect(route('login'));
+    }
+
+    /** @test */
+    public function 新着順の問い合わせ一覧をダウンロードできる(): void
+    {
+        // $this->withoutExceptionHandling();
+        // Arrange
+        $user = User::factory()->create();
+        $category = Category::factory()->create(['content' => '商品のお届けについて']);
+
+        $oldContact = Contact::factory()->create([ // 古いデータを作成
+            'category_id' => $category->id,
+            'created_at' => now()->subDays(2),
+        ]);
+        $newContact = Contact::factory()->create([ // 新しいデータを作成
+            'category_id' => $category->id,
+            'created_at' => now(),
+        ]);
+        // Act
+        $response = $this->actingAs($user)->get('/contacts/export');
+        // Assert
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+
+        $content = $response->streamedContent();
+
+        // BOM（\xEF\xBB\xBF）が含まれているか検証
+        $this->assertStringStartsWith("\xEF\xBB\xBF", $content);
+
+        // 新しいデータが古いデータより前に出力されているか（新着順）の検証
+        $newPos = strpos($content, (string) $newContact->id);
+        $oldPos = strpos($content, (string) $oldContact->id);
+        $this->assertTrue($newPos < $oldPos);
     }
 }

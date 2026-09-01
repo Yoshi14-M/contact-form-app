@@ -24,14 +24,18 @@ Route::get('/thanks', [ContactController::class, 'thanks'])->name('contact.thank
 
 /**
  * 管理画面（認証ルート）
- * prefix('admin')->name('admin.')でグループと結合して'admin.'を省略。
  */
-Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    // 管理画面のCRUDルート
-    Route::get('/', [AdminController::class, 'index'])->name('index');
-    Route::get('/contacts/{contact}', [AdminController::class, 'show'])->name('contacts.show');
-    Route::delete('/contacts/{contact}', [AdminController::class, 'destroy'])->name('contacts.destroy');
-    // タグのCRUDルート
-    Route::resource('tags', TagController::class)
-        ->only(['store', 'edit', 'update', 'destroy']);
+Route::middleware('auth')->group(function () {
+    // prefix('admin')->name('admin.')でグループと結合して'admin.'を省略。
+    Route::prefix('admin')->name('admin.')->group(function () {
+        // 管理画面のCRUDルート
+        Route::get('/', [AdminController::class, 'index'])->name('index');
+        Route::get('/contacts/{contact}', [AdminController::class, 'show'])->name('contacts.show');
+        Route::delete('/contacts/{contact}', [AdminController::class, 'destroy'])->name('contacts.destroy');
+        // タグのCRUDルート
+        Route::resource('tags', TagController::class)
+            ->only(['store', 'edit', 'update', 'destroy']);
+    });
+    // 問い合わせの出力ルート
+    Route::get('/contacts/export', [ContactController::class, 'export']);
 });

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,5 +54,39 @@ class Contact extends Model
             3 => 'その他',
             default => '',
         };
+    }
+
+    /**
+     * 検索フィルタリング用のローカルスコープ
+     * （問い合わせ一覧表示およびCSVファイル出力で使用。）
+     */
+    public function scopeSearch(Builder $query, array $filters): Builder
+    {
+        // キーワード検索
+        if (! empty($filters['keyword'])) {
+            $keyword = $filters['keyword'];
+            $query->where(function ($q) use ($keyword) {
+                $q->where('first_name', 'like', "%{$keyword}%")
+                    ->orWhere('last_name', 'like', "%{$keyword}%")
+                    ->orWhere('email', 'like', "%{$keyword}%");
+            });
+        }
+
+        // 性別検索 (0は「全て」扱いのため除外)
+        if (isset($filters['gender']) && $filters['gender'] != 0) {
+            $query->where('gender', $filters['gender']);
+        }
+
+        // カテゴリー検索
+        if (! empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        // 問い合わせ日時検索
+        if (! empty($validated['date'])) {
+            $query->whereDate('created_at', $filters['date']);
+        }
+
+        return $query->latest(); // 新着順に並べ替え
     }
 }

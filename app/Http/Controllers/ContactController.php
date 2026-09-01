@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ExportContactRequest;
 use App\Http\Requests\StoreContactRequest;
 use App\Models\Category;
 use App\Models\Contact;
@@ -63,5 +64,59 @@ class ContactController extends Controller
     public function thanks()
     {
         return view('contact.thanks');
+    }
+
+    /**
+     * Export a listing of the resource.
+     * お問い合わせのCSV出力
+     */
+    public function export(ExportContactRequest $request)
+    {
+        // 検索ロジック呼び出して全件取得
+        $query = Contact::with('category')
+            ->search($request->validated());
+
+        $filename = 'contacts_'.now()->format('Ymd_His').'.csv';
+
+        return response()->streamDownload(function () use ($query) {
+            $stream = fopen('php://output', 'w');
+
+            // Excel文字化け防止用BOM
+            fwrite($stream, "\xEF\xBB\xBF");
+
+            // CSVヘッダー
+            fputcsv($stream, [
+                'ID',
+                '氏名',
+                '性別',
+                'メールアドレス',
+                '電話番号',
+                '住所',
+                '建物名',
+                'カテゴリ',
+                'お問い合わせ内容',
+                '作成日時',
+            ]);
+
+            // 1件ずつ取得して書き出し
+            foreach ($query->cursor() as $contact) {
+                fputcsv($stream, [
+                    $contact->id,
+                    $contact->first_name.' '.$contact->last_name,
+                    $contact->gender_label,
+                    $contact->email,
+                    $contact->tel,
+                    $contact->address,
+                    $contact->building,
+                    $contact->category?->content ?? '',
+                    $contact->detail,
+                    $contact->created_at?->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($stream);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 }
